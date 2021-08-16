@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.reader.loader
 
 import android.content.Context
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.source.LocalSource
@@ -76,8 +77,16 @@ class ChapterLoader(
      */
     private fun getPageLoader(chapter: ReaderChapter): PageLoader {
         val isDownloaded = downloadManager.isChapterDownloaded(chapter.chapter, manga, true)
+        val chapter_tmp = Chapter.create()
+        chapter_tmp.copyFrom(chapter.chapter)
+        chapter_tmp.name += "_tmp"
+        val isPartialDownloaded = downloadManager.isChapterDownloaded(chapter_tmp, manga, true)
+        if (!isDownloaded && isPartialDownloaded) {
+            chapter.chapter.copyFrom(chapter_tmp)
+        }
         return when {
             isDownloaded -> DownloadPageLoader(chapter, manga, source, downloadManager)
+            isPartialDownloaded -> DownloadPageLoader(chapter, manga, source, downloadManager)
             source is HttpSource -> HttpPageLoader(chapter, source)
             source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
                 when (format) {

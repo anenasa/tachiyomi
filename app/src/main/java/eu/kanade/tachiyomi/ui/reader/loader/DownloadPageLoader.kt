@@ -28,6 +28,7 @@ class DownloadPageLoader(
      * Returns an observable containing the pages found on this downloaded chapter.
      */
     override fun getPages(): Observable<List<ReaderPage>> {
+        val test = downloadManager.buildPageList(source, manga, chapter.chapter)
         return downloadManager.buildPageList(source, manga, chapter.chapter)
             .map { pages ->
                 pages.map { page ->
